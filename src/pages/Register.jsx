@@ -8,6 +8,7 @@ import { Link, useNavigate } from 'react-router-dom'
 
 const Register = () => {
   const [err, setErr] = useState(false)
+  const [progress, setProgress] = useState(null)
 
   const navigate = useNavigate()
 
@@ -27,6 +28,11 @@ const Register = () => {
       const uploadTask = uploadBytesResumable(storageRef, file)
 
       uploadTask.on(
+        'state_changed',
+        (snapshot) => {
+          const p = (snapshot.bytesTransferred / snapshot.totalBytes) * 100
+          setProgress(p)
+        },
         (error) => {
           setErr(true)
         },
@@ -43,7 +49,7 @@ const Register = () => {
               photoURL: downloadURL,
             })
 
-            await setDoc(doc(db, 'userChats', res.user.uid))
+            await setDoc(doc(db, 'userChats', res.user.uid), {})
             navigate('/')
           })
         },
@@ -67,7 +73,9 @@ const Register = () => {
             <img src={Add} alt="" />
             <span>Add an avatar</span>
           </label>
-          <button type="submit">Sign up</button>
+          <button disabled={progress !== null && progress < 100} type="submit">
+            Sign up
+          </button>
           {err && <span>Something went wrong !!!</span>}
         </form>
         <p>
